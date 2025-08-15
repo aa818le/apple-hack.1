@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIPERX</title>
     <style>
-        /* Sizning avvalgi style qismingiz o‘z holida qoladi */
         body {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -143,50 +142,7 @@
     </div>
 
 <script type="module">
-    // ===== FIREBASE IMPORTS =====
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
-    // Firebase config
-    const firebaseConfig = {
-        apiKey: "AIzaSyB1_XCbC777hKwxlilhMeq5Hpty1dvDT1I",
-        authDomain: "giper-8fd92.firebaseapp.com",
-        databaseURL: "https://giper-8fd92-default-rtdb.firebaseio.com",
-        projectId: "giper-8fd92",
-        storageBucket: "giper-8fd92.firebasestorage.app",
-        messagingSenderId: "485740337398",
-        appId: "1:485740337398:web:ab901fd4f28219ea5834d7"
-    };
-
-    // Init
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const startBtn = document.getElementById('startButton');
-    const nextBtn = document.getElementById('nextButton');
-    const prevBtn = document.getElementById('prevButton');
-
-    // BET_ON_OFF ni tekshirish
-    const betRef = ref(db, 'BET_ON_OFF/YUMHZLSxxPdVlN7mnJi35aDGqAw1/BET_ON_OFF');
-
-    onValue(betRef, (snapshot) => {
-        const value = snapshot.val();
-        console.log("BET_ON_OFF qiymati:", value);
-
-        if (value === true) {
-            // True bo‘lsa tugmalarni bloklaymiz
-            startBtn.disabled = true;
-            nextBtn.disabled = true;
-            prevBtn.disabled = true;
-        } else {
-            // False bo‘lsa tugmalar ishlaydi
-            startBtn.disabled = false;
-            nextBtn.disabled = false;
-            prevBtn.disabled = false;
-        }
-    });
-
-    // ===== SIZNING AVVALGI O‘YIN KODINGIZ =====
+    // === Asl skript ===
     const customTexts = [1.23, 1.54, 1.93, 2.41, 4.02, 6.71, 11.18, 27.97, 69.93, 349.68];
     let currentIndex = -1;
     let savedRandoms = {};
@@ -306,11 +262,48 @@
         document.getElementById('prevButton').disabled = !(currentIndex > 0);
     }
 
-    startBtn.addEventListener('click', startPrediction);
-    nextBtn.addEventListener('click', nextPrediction);
-    prevBtn.addEventListener('click', prevPrediction);
+    document.getElementById('startButton').addEventListener('click', startPrediction);
+    document.getElementById('nextButton').addEventListener('click', nextPrediction);
+    document.getElementById('prevButton').addEventListener('click', prevPrediction);
 
     showInitialImages();
+
+    // === Firebase tekshiruv qismi ===
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB1_XCbC777hKwxlilhMeq5Hpty1dvDT1I",
+        authDomain: "giper-8fd92.firebaseapp.com",
+        databaseURL: "https://giper-8fd92-default-rtdb.firebaseio.com",
+        projectId: "giper-8fd92",
+        storageBucket: "giper-8fd92.firebasestorage.app",
+        messagingSenderId: "485740337398"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const userId = "YUMHZLSxxPdVlN7mnJi35aDGqAw1";
+
+    const betRef = ref(db, `BET_ON_OFF/${userId}`);
+    onValue(betRef, (snapshot) => {
+        const status = snapshot.val();
+        const prevBtn = document.getElementById('prevButton');
+        const startBtn = document.getElementById('startButton');
+        const nextBtn = document.getElementById('nextButton');
+
+        if (status === true) {
+            prevBtn.disabled = true;
+            startBtn.disabled = true;
+            nextBtn.disabled = true;
+            console.log("BET_ON_OFF = true → Tugmalar bloklandi");
+        } else if (status === false) {
+            prevBtn.disabled = false;
+            startBtn.disabled = false;
+            nextBtn.disabled = false;
+            console.log("BET_ON_OFF = false → Tugmalar yoqildi");
+        }
+    });
 </script>
 </body>
 </html>
