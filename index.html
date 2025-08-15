@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIPERX</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: url("back.jpg") no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .loading {
+            margin: 20px auto;
+            font-size: 18px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #predictionCard {
+            opacity: 0;
+            transform: scale(0.9) translateY(50px);
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        #predictionCard.visible-card {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+        .prediction-img {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .prediction-img.visible-img {
+            opacity: 1;
+        }
+        #controls {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+        .control-button {
+            background-color: #fff;
+            color: #007bff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .control-button:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .control-button:disabled {
+            background-color: #ccc;
+            color: #777;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .input-field {
+            display: block;
+            width: 90%;
+            max-width: 300px;
+            padding: 10px;
+            margin: 10px auto 20px;
+            font-size: 16px;
+            text-align: center;
+            color: white;
+            background: transparent;
+            border: 2px solid white;
+            border-radius: 10px;
+            outline: none;
+        }
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        #from {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            left: 50%;
+            bottom: 50px;
+            transform: translateX(-50%);
+            width: 80%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .logo {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+        }
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">GIPER PREMIUM</div>
+    <div class="logo">
+        <img src="logo.png" alt="Logo">
+    </div>
+    <div id="predictionCard">
+        <h3 id="predictionNumber"></h3>
+        <div id="predictionImages" style="display:flex; justify-content:center; flex-wrap:wrap;"></div>
+    </div>
+    <div id="from" style="display: block;">
+        <input type="text" id="numericInput" class="input-field" placeholder="GIPER PREMIUM SCRIPT 30$" readonly>
+    </div>
+    <div id="controls">
+        <button id="prevButton" class="control-button">previous</button>
+        <button id="startButton" class="control-button">start</button>
+        <button id="nextButton" class="control-button">next</button>
+    </div>
+
+<script>
+    const customTexts = [1.23, 1.54, 1.93, 2.41, 4.02, 6.71, 11.18, 27.97, 69.93, 349.68];
+    let currentIndex = -1;
+    let savedRandoms = {};
+    const totalSlots = 5;
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function generateImagesArray(poiCount, lkjCount) {
+        let arr = [];
+        for (let i = 0; i < poiCount; i++) arr.push("0");
+        for (let i = 0; i < lkjCount; i++) arr.push("1");
+        while (arr.length < totalSlots) arr.push("1");
+        return shuffle(arr);
+    }
+
+    function showInitialImages() {
+        const container = document.getElementById('predictionImages');
+        container.innerHTML = '';
+        for (let i = 0; i < totalSlots; i++) {
+            const img = document.createElement('img');
+            img.src = 'hidden.png';
+            img.classList.add('prediction-img');
+            container.appendChild(img);
+            setTimeout(() => img.classList.add('visible-img'), 50);
+        }
+        document.getElementById('predictionNumber').textContent = '';
+        document.getElementById('predictionCard').classList.add('visible-card');
+        document.getElementById('prevButton').disabled = true;
+        document.getElementById('nextButton').disabled = true;
+    }
+
+    function displayPrediction(num, imagesArray) {
+        const card = document.getElementById('predictionCard');
+        card.classList.remove('visible-card');
+
+        setTimeout(() => {
+            document.getElementById('predictionNumber').textContent = num;
+            const container = document.getElementById('predictionImages');
+            container.innerHTML = '';
+
+            if (!imagesArray) {
+                imagesArray = generateForNumber(num);
+            }
+
+            imagesArray.forEach((type) => {
+                const img = document.createElement('img');
+                img.src = (type === "0") ? 'appleRotten.png' : 'appleHealthy.png';
+                img.classList.add('prediction-img');
+                container.appendChild(img);
+                setTimeout(() => img.classList.add('visible-img'), 50);
+            });
+
+            card.classList.add('visible-card');
+            updateButtonsState();
+        }, 250);
+    }
+
+    function generateForNumber(num) {
+        let poiCount = 0, lkjCount = 0;
+        if (num >= 1.23 && num <= 2.41) { poiCount = 1; lkjCount = 4; }
+        else if (num >= 4.02 && num <= 11.18) { poiCount = 2; lkjCount = 3; }
+        else if (num >= 27.97 && num <= 69.93) { poiCount = 3; lkjCount = 2; }
+        else if (num === 349.68) { poiCount = 4; lkjCount = 1; }
+        else { poiCount = 0; lkjCount = 5; }
+        return generateImagesArray(poiCount, lkjCount);
+    }
+
+    function generateAndSaveRandom(index) {
+        const num = customTexts[index];
+        const arr = generateForNumber(num);
+        savedRandoms[index] = arr;
+    }
+
+    function startPrediction() {
+        savedRandoms = {};
+        currentIndex = 0;
+        generateAndSaveRandom(currentIndex);
+        showPredictionByIndex();
+        document.querySelector('.loading').textContent = "ENEMIESX SCRIPT";
+    }
+
+    function nextPrediction() {
+        if (currentIndex < customTexts.length - 1) {
+            currentIndex++;
+            if (!savedRandoms.hasOwnProperty(currentIndex)) {
+                generateAndSaveRandom(currentIndex);
+            }
+            showPredictionByIndex();
+        }
+    }
+
+    function prevPrediction() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            if (!savedRandoms.hasOwnProperty(currentIndex)) {
+                generateAndSaveRandom(currentIndex);
+            }
+            showPredictionByIndex();
+        }
+    }
+
+    function showPredictionByIndex() {
+        if (currentIndex < 0 || currentIndex >= customTexts.length) return;
+        const num = customTexts[currentIndex];
+        const imagesArray = savedRandoms[currentIndex];
+        displayPrediction(num, imagesArray);
+    }
+
+    function updateButtonsState() {
+        document.getElementById('nextButton').disabled = !(currentIndex >= 0 && currentIndex < customTexts.length - 1);
+        document.getElementById('prevButton').disabled = !(currentIndex > 0);
+    }
+
+    document.getElementById('startButton').addEventListener('click', startPrediction);
+    document.getElementById('nextButton').addEventListener('click', nextPrediction);
+    document.getElementById('prevButton').addEventListener('click', prevPrediction);
+
+    showInitialImages();
+</script>
+</body>
+</html>
