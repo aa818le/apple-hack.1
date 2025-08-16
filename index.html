@@ -121,22 +121,9 @@
             max-width: 200px;
             height: auto;
         }
-        #blockedMessage {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            z-index: 9999;
-            display: none;
-        }
     </style>
 </head>
 <body>
-    <div id="blockedMessage">🚫 Dastur hozir bloklangan</div>
     <div class="loading">GIPER SCRIPT</div>
     <div class="logo">
         <img src="logo.png" alt="Logo">
@@ -154,41 +141,7 @@
         <button id="nextButton" class="control-button">next</button>
     </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-
-    // Firebase konfiguratsiya
-    const firebaseConfig = {
-        apiKey: "AIzaSyB1_XCbC777hKwxlilhMeq5Hpty1dvDT1I",
-        authDomain: "giper-8fd92.firebaseapp.com",
-        databaseURL: "https://giper-8fd92-default-rtdb.firebaseio.com",
-        projectId: "giper-8fd92",
-        storageBucket: "giper-8fd92.firebasestorage.app",
-        messagingSenderId: "485740337398",
-        appId: "1:485740337398:web:demo"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    // signal ni tekshirish
-    const signalRef = ref(db, "signal");
-    onValue(signalRef, (snapshot) => {
-        const signalValue = snapshot.val();
-        const blockedMessage = document.getElementById("blockedMessage");
-        const buttons = document.querySelectorAll(".control-button");
-
-        if (signalValue === true) {
-            blockedMessage.style.display = "none";
-            buttons.forEach(btn => btn.disabled = false);
-        } else {
-            blockedMessage.style.display = "flex";
-            buttons.forEach(btn => btn.disabled = true);
-        }
-    });
-
-    // === Qolgan sizning UI funksiyalaringiz ===
+<script>
     const customTexts = [1.23, 1.54, 1.93, 2.41, 4.02, 6.71, 11.18, 27.97, 69.93, 349.68];
     let currentIndex = -1;
     let savedRandoms = {};
@@ -210,6 +163,48 @@
         return shuffle(arr);
     }
 
+    function showInitialImages() {
+        const container = document.getElementById('predictionImages');
+        container.innerHTML = '';
+        for (let i = 0; i < totalSlots; i++) {
+            const img = document.createElement('img');
+            img.src = 'hidden.png';
+            img.classList.add('prediction-img');
+            container.appendChild(img);
+            setTimeout(() => img.classList.add('visible-img'), 50);
+        }
+        document.getElementById('predictionNumber').textContent = '';
+        document.getElementById('predictionCard').classList.add('visible-card');
+        document.getElementById('prevButton').disabled = true;
+        document.getElementById('nextButton').disabled = true;
+    }
+
+    function displayPrediction(num, imagesArray) {
+        const card = document.getElementById('predictionCard');
+        card.classList.remove('visible-card');
+
+        setTimeout(() => {
+            document.getElementById('predictionNumber').textContent = num;
+            const container = document.getElementById('predictionImages');
+            container.innerHTML = '';
+
+            if (!imagesArray) {
+                imagesArray = generateForNumber(num);
+            }
+
+            imagesArray.forEach((type) => {
+                const img = document.createElement('img');
+                img.src = (type === "0") ? 'appleRotten.png' : 'appleHealthy.png';
+                img.classList.add('prediction-img');
+                container.appendChild(img);
+                setTimeout(() => img.classList.add('visible-img'), 50);
+            });
+
+            card.classList.add('visible-card');
+            updateButtonsState();
+        }, 250);
+    }
+
     function generateForNumber(num) {
         let poiCount = 0, lkjCount = 0;
         if (num >= 1.23 && num <= 2.41) { poiCount = 1; lkjCount = 4; }
@@ -218,27 +213,6 @@
         else if (num === 349.68) { poiCount = 4; lkjCount = 1; }
         else { poiCount = 0; lkjCount = 5; }
         return generateImagesArray(poiCount, lkjCount);
-    }
-
-    function displayPrediction(num, imagesArray) {
-        document.getElementById('predictionNumber').textContent = num;
-        const container = document.getElementById('predictionImages');
-        container.innerHTML = '';
-
-        if (!imagesArray) {
-            imagesArray = generateForNumber(num);
-        }
-
-        imagesArray.forEach((type) => {
-            const img = document.createElement('img');
-            img.src = (type === "0") ? 'appleRotten.png' : 'appleHealthy.png';
-            img.classList.add('prediction-img');
-            container.appendChild(img);
-            setTimeout(() => img.classList.add('visible-img'), 50);
-        });
-
-        document.getElementById('predictionCard').classList.add('visible-card');
-        updateButtonsState();
     }
 
     function generateAndSaveRandom(index) {
@@ -252,6 +226,7 @@
         currentIndex = 0;
         generateAndSaveRandom(currentIndex);
         showPredictionByIndex();
+        document.querySelector('.loading').textContent = "GIPER SCRIPT";
     }
 
     function nextPrediction() {
@@ -289,6 +264,8 @@
     document.getElementById('startButton').addEventListener('click', startPrediction);
     document.getElementById('nextButton').addEventListener('click', nextPrediction);
     document.getElementById('prevButton').addEventListener('click', prevPrediction);
+
+    showInitialImages();
 </script>
 </body>
 </html>
